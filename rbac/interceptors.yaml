@@ -1,0 +1,16 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: ClusterInterceptor
+metadata:
+  name: github
+spec:
+  clientConfig:
+    url: https://tekton-triggers-webhook.tekton-pipelines.svc.cluster.local
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: ClusterInterceptor
+metadata:
+  name: cel
+spec:
+  clientConfig:
+    url: https://tekton-triggers-webhook.tekton-pipelines.svc.cluster.local
+

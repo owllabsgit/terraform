@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: hello
+spec:
+  steps:
+    - name: echo
+      image: alpine
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: "RuntimeDefault"
+      script: |
+        #!/bin/sh
+        echo "Hello from Tekton!"

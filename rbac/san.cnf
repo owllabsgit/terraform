@@ -1,0 +1,17 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+CN = tekton-triggers-webhook.tekton-pipelines.svc
+
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = tekton-triggers-webhook.tekton-pipelines.svc
+DNS.2 = tekton-triggers-webhook
+DNS.3 = tekton-triggers-webhook.tekton-pipelines

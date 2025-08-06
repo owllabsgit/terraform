@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-and-push
+  namespace: test
+spec:
+  params:
+    - name: IMAGE
+      type: string
+    - name: CONTEXT
+      type: string
+      default: .
+  workspaces:
+    - name: source
+    - name: dockerconfig  # <-- Add this to match volumeMounts
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      args:
+        - --dockerfile=$(workspaces.source.path)/Dockerfile
+        - --context=$(workspaces.source.path)/$(params.CONTEXT)
+        - --destination=$(params.IMAGE)
+        - --verbosity=info
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+  volumes:
+    - name: docker-config
+      projected:
+        sources:
+          - secret:
+              name: regcred
+              items:
+                - key: .dockerconfigjson
+                  path: config.json
+

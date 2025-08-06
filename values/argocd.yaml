@@ -1,0 +1,22 @@
+global:
+  image:
+    tag: "v2.6.7"  # Matches your desired version
+
+server:
+  extraArgs:
+    - --insecure
+  service:
+    type: NodePort
+    nodePort: 30007
+  ingress:
+    enabled: false  # Set to true if you need ingress
+
+controller:
+  replicas: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+repoServer:
+  replicas: 1

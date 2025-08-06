@@ -1,0 +1,29 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: clone
+spec:
+  params:
+    - name: url
+      type: string
+    - name: revision
+      type: string
+      default: "main"
+    - name: subdirectory
+      type: string
+      default: ""
+  workspaces:
+    - name: output
+  steps:
+    - name: clone
+      image: alpine/git
+      script: |
+        #!/bin/sh
+        set -e
+        DEST_DIR="$(workspaces.output.path)/$(params.subdirectory)"
+        echo "Cloning $(params.url) into $DEST_DIR"
+        git clone $(params.url) "$DEST_DIR"
+        cd "$DEST_DIR"
+        echo "Checking out revision: $(params.revision)"
+        git checkout $(params.revision)
+

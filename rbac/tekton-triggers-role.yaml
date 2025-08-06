@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tekton-triggers-role
+  namespace: test
+rules:
+  - apiGroups: ["triggers.tekton.dev"]
+    resources: ["eventlisteners", "triggerbindings", "triggertemplates", "interceptors"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "serviceaccounts"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["tekton.dev"]
+    resources: ["pipelineruns"]
+    verbs: ["create"]
+

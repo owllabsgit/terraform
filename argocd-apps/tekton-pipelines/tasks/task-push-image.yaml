@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: push-image
+spec:
+  params:
+    - name: IMAGE
+      type: string
+  workspaces:
+    - name: source
+  steps:
+    - name: push-image
+      image: gcr.io/kaniko-project/executor:latest
+      args:
+        - --dockerfile=/workspace/source/Dockerfile
+        - --context=/workspace/source
+        - --destination=$(params.IMAGE)
+        - --reproducible
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+  volumes:
+    - name: docker-config
+      secret:
+        secretName: dockerhub-secret
+

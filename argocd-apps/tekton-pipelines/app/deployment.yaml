@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: test
+  labels:
+    app: my-app
+  annotations:
+    # Tell Argo CD Image Updater to track this image
+    argocd-image-updater.argoproj.io/image-list: owllabsdocker/owllabs
+    argocd-image-updater.argoproj.io/owllabs.update-strategy: latest
+    argocd-image-updater.argoproj.io/owllabs.force-update: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: app
+          image: owllabsdocker/owllabs:latest
+          ports:
+            - containerPort: 8080
+

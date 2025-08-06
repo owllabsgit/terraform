@@ -1,0 +1,36 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: pipeline-trigger-template
+  namespace: test
+spec:
+  params:
+    - name: gitrevision
+    - name: gitrepositoryurl
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: build-and-push-run-
+      spec:
+        pipelineRef:
+          name: pipeline-build-push
+        params:
+          - name: GIT_URL
+            value: $(tt.params.gitrepositoryurl)
+          - name: GIT_REVISION
+            value: $(tt.params.gitrevision)
+          - name: IMAGE
+            value: docker.io/owllabsdocker/owllabs:latest
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                resources:
+                  requests:
+                    storage: 2Gi
+          - name: dockerconfig
+            secret:
+              secretName: regcred
+

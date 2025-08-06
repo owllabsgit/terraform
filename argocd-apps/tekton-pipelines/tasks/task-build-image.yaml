@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-image
+spec:
+  params:
+    - name: IMAGE_NAME
+      type: string
+  workspaces:
+    - name: source
+  steps:
+    - name: build-image
+      image: gcr.io/kaniko-project/executor:latest
+      args:
+        - --dockerfile=/workspace/source/Dockerfile
+        - --context=/workspace/source
+        - --tarPath=/workspace/source/image.tar
+        - --no-push
+

@@ -1,0 +1,46 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline-build-push
+  namespace: test
+spec:
+  description: |
+    Clone a Git repository and build & push a Docker image using custom tasks.
+  params:
+    - name: GIT_URL
+      type: string
+    - name: GIT_REVISION
+      type: string
+      default: main
+    - name: IMAGE
+      type: string
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+  tasks:
+    - name: clone
+      taskRef:
+        name: clone
+      params:
+        - name: url
+          value: $(params.GIT_URL)
+        - name: revision
+          value: $(params.GIT_REVISION)
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+
+    - name: build-and-push
+      runAfter:
+        - clone
+      taskRef:
+        name: build-and-push
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+

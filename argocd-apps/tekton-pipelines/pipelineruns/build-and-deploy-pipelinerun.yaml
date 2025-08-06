@@ -1,0 +1,29 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: build-and-push-run
+  namespace: test
+spec:
+  pipelineRef:
+    name: pipeline-build-push
+  timeouts:
+    pipeline: 30m
+  params:
+    - name: GIT_URL
+      value: "https://github.com/louayparadigma/test1-owl.git"
+    - name: GIT_REVISION
+      value: "main"
+    - name: IMAGE
+      value: "docker.io/owllabsdocker/owllabs:latest"
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+    - name: dockerconfig
+      secret:
+        secretName: regcred
+

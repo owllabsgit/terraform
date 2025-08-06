@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: sonarqube-scan
+spec:
+  params:
+    - name: SONAR_HOST_URL
+    - name: SONAR_TOKEN
+  workspaces:
+    - name: source
+  steps:
+    - name: scan
+      image: sonarsource/sonar-scanner-cli
+      env:
+        - name: SONAR_HOST_URL
+          value: $(params.SONAR_HOST_URL)
+        - name: SONAR_TOKEN
+          value: $(params.SONAR_TOKEN)
+      script: |
+        sonar-scanner \
+          -Dsonar.host.url=$(params.SONAR_HOST_URL) \
+          -Dsonar.login=$(params.SONAR_TOKEN)
+
