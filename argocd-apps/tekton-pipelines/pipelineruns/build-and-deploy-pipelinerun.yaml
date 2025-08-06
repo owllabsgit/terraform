@@ -10,7 +10,7 @@ spec:
     pipeline: 30m
   params:
     - name: GIT_URL
-      value: "https://github.com/louayparadigma/test1-owl.git"
+      value: "https://github.com/owllabsgit/test1-owl.git"
     - name: GIT_REVISION
       value: "main"
     - name: IMAGE
