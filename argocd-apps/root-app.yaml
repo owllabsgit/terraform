@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/louayparadigma/test1-owl.git
-    targetRevision: HEAD
+    repoURL: https://github.com/owllabsgit/test1-owl.git
+    targetRevision: main
     path: argocd-apps/tekton-pipelines
   destination:
     server: https://kubernetes.default.svc
