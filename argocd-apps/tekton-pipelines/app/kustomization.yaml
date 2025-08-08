@@ -1,4 +1,0 @@
-resources:
-  - deployment.yaml
-  - service.yaml
-  - my-app.yaml

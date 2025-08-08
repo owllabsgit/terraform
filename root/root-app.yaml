@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: my-app
+  name: root-app
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/owllabsgit/terraform.git
+    repoURL: https://github.com/owllabsgit/test1-owl.git
     targetRevision: main
-    path: argocd-apps/tekton-pipelines/app
+    path: argocd-apps/root
   destination:
     server: https://kubernetes.default.svc
-    namespace: test
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
