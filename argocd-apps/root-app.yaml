@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/owllabsgit/test1-owl.git
+    repoURL: https://github.com/owllabsgit/terraform.git
     targetRevision: main
-    path: argocd-apps/tekton-pipelines
+    path: argocd-apps/tekton-pipelines/app
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
