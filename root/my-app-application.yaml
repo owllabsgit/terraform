@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/owllabsgit/terraform.git
     targetRevision: main
-    path: argocd-apps/my-app
+    path: argocd-apps/root
   destination:
     server: https://kubernetes.default.svc
     namespace: test
