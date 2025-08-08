@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/owllabsgit/test1-owl.git
-    targetRevision: main
+    targetRevision: HEAD
     path: argocd-apps/tekton-pipelines/app
   destination:
     server: https://kubernetes.default.svc
