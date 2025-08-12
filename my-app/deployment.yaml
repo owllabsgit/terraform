@@ -1,28 +1,23 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: my-app
-  namespace: test
-  labels:
-    app: my-app
+  namespace: argocd
   annotations:
-    # Tell Argo CD Image Updater to track this image
     argocd-image-updater.argoproj.io/image-list: owllabsdocker/owllabs
     argocd-image-updater.argoproj.io/owllabs.update-strategy: latest
     argocd-image-updater.argoproj.io/owllabs.force-update: "true"
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: my-app
-  template:
-    metadata:
-      labels:
-        app: my-app
-    spec:
-      containers:
-        - name: app
-          image: owllabsdocker/owllabs:latest
-          ports:
-            - containerPort: 8080
+  project: default
+  source:
+    repoURL: https://github.com/owllabsgit/terraform.git
+    targetRevision: main
+    path: my-app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: test
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
 

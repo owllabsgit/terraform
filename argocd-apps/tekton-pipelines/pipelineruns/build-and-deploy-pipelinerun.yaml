@@ -16,7 +16,7 @@ spec:
     - name: IMAGE
       value: "docker.io/owllabsdocker/owllabs:latest"
   workspaces:
-    - name: shared-workspace
+    - name: source               # changed from shared-workspace to source
       volumeClaimTemplate:
         spec:
           accessModes: ["ReadWriteOnce"]

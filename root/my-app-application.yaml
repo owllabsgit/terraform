@@ -3,10 +3,14 @@ kind: Application
 metadata:
   name: my-app
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: owllabsdocker/owllabs
+    argocd-image-updater.argoproj.io/owllabs.update-strategy: latest
+    argocd-image-updater.argoproj.io/owllabs.force-update: "true"
 spec:
   project: default
   source:
-    repoURL: https://github.com/owllabsgit/terraform.git
+    repoURL: https://github.com/owllabsgit/test1-owl.git   # <-- point to app repo
     targetRevision: main
     path: my-app
   destination:
@@ -16,6 +20,4 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
 
