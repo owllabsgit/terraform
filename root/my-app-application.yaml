@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/owllabsgit/test1-owl.git   # <-- point to app repo
     targetRevision: main
-    path: my-app
+    path: .
   destination:
     server: https://kubernetes.default.svc
     namespace: test
