@@ -1,3 +1,4 @@
+# ✅ Updated Task: Remove the entire 'update-git-manifests' step
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -7,30 +8,16 @@ spec:
   params:
     - name: IMAGE
       type: string
-      description: Full image name with tag (e.g., docker.io/owllabsdocker/owllabs:20250815)
+      description: Full image name with tag (e.g., docker.io/owllabsdocker/owllabs:build-123)
     - name: CONTEXT
       type: string
       default: .
       description: Build context directory
-    - name: MANIFEST_REPO_URL
-      type: string
-      description: Git repo containing Kubernetes manifests
-    - name: MANIFEST_REPO_BRANCH
-      type: string
-      default: main
-      description: Branch to update
-    - name: MANIFEST_REPO_PATH
-      type: string
-      default: my-app
-      description: Path inside repo where the deployment.yaml is located
   workspaces:
     - name: source
       description: Source code to build
     - name: dockerconfig
       description: Docker config.json for pushing image
-    - name: git-ssh
-      optional: true
-      description: SSH keys for pushing to a private repo (optional)
   steps:
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:latest
@@ -42,47 +29,7 @@ spec:
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
-
-    - name: update-git-manifests
-      image: alpine/git
-      workingDir: /workspace
-      script: |
-        set -eux
-
-        # Configure git identity
-        git config --global user.email "ci-bot@yourorg.com"
-        git config --global user.name "CI Bot"
-
-        # If using SSH, ensure host key is accepted
-        if [ -d /root/.ssh ]; then
-          mkdir -p ~/.ssh
-          cp -R /root/.ssh/* ~/.ssh/
-          chmod 700 ~/.ssh
-          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-        fi
-
-        # Clone manifests repo
-        git clone --branch "$(params.MANIFEST_REPO_BRANCH)" "$(params.MANIFEST_REPO_URL)" manifests
-
-        cd manifests/$(params.MANIFEST_REPO_PATH)
-
-        # Update image line in deployment.yaml
-        # This assumes your YAML has exactly one 'image:' line for the app container
-        sed -i "s|image: .*|image: $(params.IMAGE)|" deployment.yaml
-
-        # Commit & push only if changes exist
-        if git diff --quiet; then
-          echo "No changes to commit"
-        else
-          git add deployment.yaml
-          git commit -m "Update image to $(params.IMAGE)"
-          git push origin "$(params.MANIFEST_REPO_BRANCH)"
-        fi
-      volumeMounts:
-        - name: git-ssh
-          mountPath: /root/.ssh
   volumes:
     - name: docker-config
       configMap:
         name: docker-config
-

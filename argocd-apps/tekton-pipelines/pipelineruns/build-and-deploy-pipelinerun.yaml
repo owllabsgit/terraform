@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: build-and-push-run
+  name: build-and-push-run-$(date +%s)  # Optional: make name unique
   namespace: test
 spec:
   pipelineRef:
@@ -13,10 +13,11 @@ spec:
       value: "https://github.com/owllabsgit/test1-owl.git"
     - name: GIT_REVISION
       value: "main"
-    - name: IMAGE
-      value: "docker.io/owllabsdocker/owllabs:latest"
+    - name: IMAGE_REPO
+      value: "docker.io/owllabsdocker/owllabs"
+    # IMAGE_TAG is auto-generated in Pipeline
   workspaces:
-    - name: source               # changed from shared-workspace to source
+    - name: source
       volumeClaimTemplate:
         spec:
           accessModes: ["ReadWriteOnce"]
@@ -26,4 +27,3 @@ spec:
     - name: dockerconfig
       secret:
         secretName: regcred
-
