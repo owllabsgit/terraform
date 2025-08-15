@@ -1,35 +1,65 @@
-# ✅ Updated Task: Remove the entire 'update-git-manifests' step
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: build-and-push
   namespace: test
 spec:
+  # Parameters
   params:
-    - name: IMAGE
+    - name: IMAGE_REPO
       type: string
-      description: Full image name with tag (e.g., docker.io/owllabsdocker/owllabs:build-123)
+      description: "Registry and repo, e.g. docker.io/owllabsdocker/owllabs"
     - name: CONTEXT
       type: string
       default: .
-      description: Build context directory
+      description: "Build context directory inside the source"
+
+  # Results (for downstream tasks)
+  results:
+    - name: built-image
+      description: "Full image name with tag"
+    - name: image-tag
+      description: "The generated tag (e.g. build-1723724580)"
+
+  # Workspaces
   workspaces:
     - name: source
-      description: Source code to build
+      description: "Source code with Dockerfile"
     - name: dockerconfig
-      description: Docker config.json for pushing image
+      description: "Docker config.json for registry auth"
+
   steps:
+    # Step 1: Generate a unique timestamp-based tag
+    - name: generate-tag
+      image: alpine:latest
+      script: |
+        # Generate Unix timestamp
+        TAG="build-$(date +%s)"
+        IMAGE="$(params.IMAGE_REPO):${TAG}"
+        echo "Generated tag: ${TAG}"
+        echo "Full image: ${IMAGE}"
+        # Write results
+        echo -n "${TAG}" > $(results.image-tag.path)
+        echo -n "${IMAGE}" > $(results.built-image.path)
+
+    # Step 2: Build and push using Kaniko
     - name: build-and-push
-      image: gcr.io/kaniko-project/executor:latest
+      image: gcr.io/kaniko-project/executor:v1.23.2
       args:
         - --dockerfile=$(workspaces.source.path)/Dockerfile
         - --context=$(workspaces.source.path)/$(params.CONTEXT)
-        - --destination=$(params.IMAGE)
+        - --destination=$(results.built-image.path)
+        - --push-retry=3
         - --verbosity=info
+        - --cache=true
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
+
   volumes:
     - name: docker-config
       configMap:
         name: docker-config
+        items:
+          - key: config.json
+            path: config.json

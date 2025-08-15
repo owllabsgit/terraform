@@ -1,21 +1,16 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: build-and-push-run-$(date +%s)  # Optional: make name unique
+  generateName: build-push-
   namespace: test
 spec:
-  pipelineRef:
-    name: pipeline-build-push
-  timeouts:
-    pipeline: 30m
+  taskRef:
+    name: build-and-push
   params:
-    - name: GIT_URL
-      value: "https://github.com/owllabsgit/test1-owl.git"
-    - name: GIT_REVISION
-      value: "main"
     - name: IMAGE_REPO
-      value: "docker.io/owllabsdocker/owllabs"
-    # IMAGE_TAG is auto-generated in Pipeline
+      value: docker.io/owllabsdocker/owllabs
+    - name: CONTEXT
+      value: .
   workspaces:
     - name: source
       volumeClaimTemplate:
@@ -25,5 +20,5 @@ spec:
             requests:
               storage: 2Gi
     - name: dockerconfig
-      secret:
-        secretName: regcred
+      configMap:
+        name: docker-config
