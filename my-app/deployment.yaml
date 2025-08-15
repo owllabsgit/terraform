@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/owllabsgit/terraform.git
+    repoURL: https://github.com/owllabsgit/test1-owl.git
     targetRevision: main
     path: my-app
   destination:

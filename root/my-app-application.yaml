@@ -4,15 +4,29 @@ metadata:
   name: my-app
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: owllabsdocker/owllabs
-    argocd-image-updater.argoproj.io/owllabs.update-strategy: latest
-    argocd-image-updater.argoproj.io/owllabs.force-update: "true"
+    # ✅ 1. List the image to track (use a nickname, e.g. 'symfony')
+    argocd-image-updater.argoproj.io/image-list: symfony=owllabsdocker/owllabs
+
+    # ✅ 2. Tell image updater to use kustomize and map the image
+    argocd-image-updater.argoproj.io/symfony.kustomize.image-name: owllabsdocker/owllabs
+
+    # ✅ 3. Allow any tag (good for testing with 'latest')
+    # Later, switch to: semver(~1.0.0) or regexp:^v?[0-9]+\.[0-9]+\.[0-9]+$
+    argocd-image-updater.argoproj.io/symfony.allow-tags: regexp:^.*$
+
+    # ✅ 4. Write back to Argo CD (no Git push!)
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+
+    # Optional: Force update even if tag is same (checks digest)
+    argocd-image-updater.argoproj.io/symfony.force-update: "true"
 spec:
   project: default
   source:
-    repoURL: https://github.com/owllabsgit/test1-owl.git   # <-- point to app repo
+    repoURL: https://github.com/owllabsgit/test1-owl.git
     targetRevision: main
     path: k8s
+    # ✅ 5. CRITICAL: Enable Kustomize
+    kustomize: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: test
@@ -20,4 +34,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
-
+    syncOptions:
+      - CreateNamespace=true
