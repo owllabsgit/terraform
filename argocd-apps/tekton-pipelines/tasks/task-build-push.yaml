@@ -14,22 +14,22 @@ spec:
       default: .
       description: "Build context directory inside the source"
 
-  # Results (for downstream tasks)
+  # Results (for visibility and chaining)
   results:
-    - name: built-image
-      description: "Full image name with tag"
     - name: image-tag
-      description: "The generated tag (e.g. build-1723724580)"
+      description: "The generated tag, e.g. build-1723724580"
+    - name: built-image
+      description: "Full image name with tag, e.g. docker.io/owllabsdocker/owllabs:build-1723724580"
 
   # Workspaces
   workspaces:
     - name: source
       description: "Source code with Dockerfile"
     - name: dockerconfig
-      description: "Docker config.json for registry auth"
+      description: "Docker config.json for registry authentication"
 
   steps:
-    # Step 1: Generate a unique timestamp-based tag
+    # Step 1: Generate a unique, real tag using current timestamp
     - name: generate-tag
       image: alpine:latest
       script: |
@@ -38,11 +38,12 @@ spec:
         IMAGE="$(params.IMAGE_REPO):${TAG}"
         echo "Generated tag: ${TAG}"
         echo "Full image: ${IMAGE}"
-        # Write results
+
+        # Write results for downstream use
         echo -n "${TAG}" > $(results.image-tag.path)
         echo -n "${IMAGE}" > $(results.built-image.path)
 
-    # Step 2: Build and push using Kaniko
+    # Step 2: Build and push the image using Kaniko
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:v1.23.2
       args:
