@@ -4,7 +4,6 @@ metadata:
   name: build-and-push
   namespace: test
 spec:
-  # Parameters
   params:
     - name: IMAGE_REPO
       type: string
@@ -14,14 +13,12 @@ spec:
       default: .
       description: "Build context directory inside the source"
 
-  # Results (for visibility and chaining)
   results:
     - name: image-tag
       description: "The generated tag, e.g. build-1723724580"
     - name: built-image
       description: "Full image name with tag, e.g. docker.io/owllabsdocker/owllabs:build-1723724580"
 
-  # Workspaces
   workspaces:
     - name: source
       description: "Source code with Dockerfile"
@@ -29,38 +26,39 @@ spec:
       description: "Docker config.json for registry authentication"
 
   steps:
-    # Step 1: Generate a unique, real tag using current timestamp
+    # Step 1: Generate a unique tag
     - name: generate-tag
       image: alpine:latest
       script: |
-        # Generate Unix timestamp
         TAG="build-$(date +%s)"
         IMAGE="$(params.IMAGE_REPO):${TAG}"
+
         echo "Generated tag: ${TAG}"
         echo "Full image: ${IMAGE}"
 
-        # Write results for downstream use
+        # Save results for later steps
         echo -n "${TAG}" > $(results.image-tag.path)
         echo -n "${IMAGE}" > $(results.built-image.path)
 
-    # Step 2: Build and push the image using Kaniko
-    - name: build-and-push
+    # Step 2: Build and push with unique tag
+    - name: build-and-push-tagged
       image: gcr.io/kaniko-project/executor:v1.23.2
       args:
         - --dockerfile=$(workspaces.source.path)/Dockerfile
         - --context=$(workspaces.source.path)/$(params.CONTEXT)
-        - --destination=$(results.built-image.path)
-        - --push-retry=3
-        - --verbosity=info
-        - --cache=true
+        - --destination=$(params.IMAGE_REPO):$(cat $(results.image-tag.path))
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
 
-  volumes:
-    - name: docker-config
-      configMap:
-        name: docker-config
-        items:
-          - key: config.json
-            path: config.json
+    # Step 3: Also update :latest (optional)
+    - name: build-and-push-latest
+      image: gcr.io/kaniko-project/executor:v1.23.2
+      args:
+        - --dockerfile=$(workspaces.source.path)/Dockerfile
+        - --context=$(workspaces.source.path)/$(params.CONTEXT)
+        - --destination=$(params.IMAGE_REPO):latest
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+
