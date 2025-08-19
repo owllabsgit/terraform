@@ -1,60 +1,50 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: build-and-push
+  name: build-and-push-image
   namespace: test
 spec:
-  description: >
-    Build and push a Docker image using Kaniko. 
-    Generates a unique tag automatically (build-<timestamp>).
-
-  # Parameters
   params:
     - name: IMAGE_REPO
       type: string
-      description: "Registry/repo, e.g. docker.io/owllabsdocker/owllabs"
+      description: "Registry and repo, e.g. docker.io/owllabsdocker/owllabs"
     - name: CONTEXT
       type: string
       default: .
-      description: "Path to build context inside source workspace"
+      description: "Build context directory inside the source"
 
-  # Results (for chaining in Pipelines)
   results:
     - name: image-tag
-      description: "The generated tag, e.g. build-1723989183"
-    - name: built-image
-      description: "The full image reference with tag"
+      description: "Generated image tag, e.g. build-1234567890"
+    - name: full-image
+      description: "Full image name with tag, e.g. docker.io/owllabsdocker/owllabs:build-1234567890"
 
-  # Workspaces
   workspaces:
     - name: source
-      description: "Workspace with app source + Dockerfile"
+      description: "Source code including Dockerfile"
     - name: dockerconfig
-      description: "Workspace with Docker config.json for registry auth"
+      description: "Docker config.json for registry authentication"
 
   steps:
-    # Step 1: Generate unique tag
+    # Step 1: Generate a unique tag
     - name: generate-tag
-      image: alpine:3.20
+      image: alpine:latest
       script: |
-        #!/bin/sh
         TAG="build-$(date +%s)"
         IMAGE="$(params.IMAGE_REPO):${TAG}"
-
         echo "Generated tag: ${TAG}"
         echo "Full image: ${IMAGE}"
-
-        # Write to Task results
         echo -n "${TAG}" > $(results.image-tag.path)
-        echo -n "${IMAGE}" > $(results.built-image.path)
+        echo -n "${IMAGE}" > $(results.full-image.path)
 
-    # Step 2: Build & push with Kaniko
-    - name: kaniko-build
+    # Step 2: Build and push the image using Kaniko
+    - name: build-and-push
       image: gcr.io/kaniko-project/executor:v1.23.2
       args:
         - --dockerfile=$(workspaces.source.path)/Dockerfile
         - --context=$(workspaces.source.path)/$(params.CONTEXT)
-        - --destination=$(results.built-image.path)
+        - --destination=$(results.full-image.path)
+        - --verbosity=info
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
