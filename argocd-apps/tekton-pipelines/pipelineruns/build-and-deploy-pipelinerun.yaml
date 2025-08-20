@@ -1,8 +1,7 @@
-# 4 - pipelinerun.yaml
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: build-and-push-run-   # <- This prefix will appear for every run
+  generateName: build-and-push-run-
   namespace: test
 spec:
   pipelineRef:
@@ -13,7 +12,7 @@ spec:
       value: https://github.com/owllabsgit/test1-owl.git
     - name: GIT_REVISION
       value: main
-    - name: IMAGE_REPO
+    - name: IMAGE_REPO 
       value: docker.io/owllabsdocker/owllabs
   workspaces:
     - name: shared-workspace
