@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: build-push-
+  generateName: build-and-push-run-   # <- This prefix will appear for every run
   namespace: test
 spec:
   pipelineRef:

@@ -1,11 +1,10 @@
-# 3 - pipeline-build-push.yaml
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: pipeline-build-push
   namespace: test
 spec:
-  description: Clone repo, build & push Docker image, update CM, patch Deployment
+  description: Clone repo, build & push Docker image, update ConfigMap, patch Deployment
   params:
     - name: GIT_URL
       type: string
@@ -21,6 +20,7 @@ spec:
     - name: clone
       taskRef:
         kind: ClusterTask
+        apiVersion: tekton.dev/v1beta1
         name: git-clone
       params:
         - name: url
@@ -30,10 +30,12 @@ spec:
       workspaces:
         - name: output
           workspace: shared-workspace
+
     - name: build-and-push
       runAfter: [clone]
       taskRef:
         name: build-and-push
+        apiVersion: tekton.dev/v1beta1
       params:
         - name: IMAGE_REPO
           value: $(params.IMAGE_REPO)
