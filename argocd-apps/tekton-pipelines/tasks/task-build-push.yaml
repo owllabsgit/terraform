@@ -1,4 +1,3 @@
-# 2 - task-build-push.yaml
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -21,34 +20,41 @@ spec:
     - name: generate-tag
       image: alpine:latest
       script: |
+        #!/bin/sh
         set -e
         TAG="build-$(date +%s)"
         IMAGE="$(params.IMAGE_REPO):${TAG}"
         echo -n "${TAG}" > $(results.image-tag.path)
         echo -n "${IMAGE}" > $(results.full-image.path)
+
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:v1.23.2
       script: |
+        #!/bin/sh
         set -e
         IMAGE="$(cat $(results.full-image.path))"
         /kaniko/executor \
           --dockerfile=$(workspaces.source.path)/Dockerfile \
           --context=$(workspaces.source.path)/$(params.CONTEXT) \
           --destination="${IMAGE}"
-      workspaces:
+      volumeMounts:
         - name: dockerconfig
           mountPath: /kaniko/.docker
+
     - name: update-configmap
       image: bitnami/kubectl:latest
       script: |
+        #!/bin/sh
         set -e
         IMAGE=$(cat $(results.full-image.path))
         kubectl create configmap symfony-image \
           --from-literal=image="$IMAGE" \
           -n test --dry-run=client -o yaml | kubectl apply -f -
+
     - name: rollout-deployment
       image: bitnami/kubectl:latest
       script: |
+        #!/bin/sh
         set -e
         IMAGE=$(cat $(results.full-image.path))
         kubectl set image deployment/symfony-app symfony="$IMAGE" -n test

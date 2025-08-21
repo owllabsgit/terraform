@@ -4,46 +4,41 @@ metadata:
   name: pipeline-build-push
   namespace: test
 spec:
-  description: Clone repo, build & push Docker image, update ConfigMap, patch Deployment
   params:
     - name: GIT_URL
       type: string
-    - name: GIT_REVISION
+      description: https://github.com/owllabsgit/test1-owl.git
+    - name: IMAGE
       type: string
-      default: main
-    - name: IMAGE_REPO
-      type: string
+      description: owllabsdocker/owllabs:latest
   workspaces:
     - name: shared-workspace
-    - name: dockerconfig
   tasks:
-    - name: clone
+    - name: fetch-source
       taskRef:
-        kind: ClusterTask
         apiVersion: tekton.dev/v1beta1
+        kind: Task
         name: git-clone
       params:
         - name: url
           value: $(params.GIT_URL)
-        - name: revision
-          value: $(params.GIT_REVISION)
+        - name: deleteExisting
+          value: "true"
       workspaces:
         - name: output
           workspace: shared-workspace
 
     - name: build-and-push
-      runAfter: [clone]
+      runAfter:
+        - fetch-source
       taskRef:
-        name: build-and-push
         apiVersion: tekton.dev/v1beta1
+        kind: Task
+        name: kaniko
       params:
-        - name: IMAGE_REPO
-          value: $(params.IMAGE_REPO)
-        - name: CONTEXT
-          value: .
+        - name: IMAGE
+          value: $(params.IMAGE)
       workspaces:
         - name: source
           workspace: shared-workspace
-        - name: dockerconfig
-          workspace: dockerconfig
 

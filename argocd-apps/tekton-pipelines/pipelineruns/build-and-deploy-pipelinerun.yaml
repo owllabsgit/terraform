@@ -15,7 +15,7 @@ spec:
     - name: IMAGE_REPO 
       value: docker.io/owllabsdocker/owllabs
   workspaces:
-    - name: shared-workspace
+    - name: source
       volumeClaimTemplate:
         spec:
           accessModes: ["ReadWriteOnce"]
