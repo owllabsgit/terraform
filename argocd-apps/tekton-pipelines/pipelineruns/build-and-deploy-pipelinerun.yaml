@@ -6,23 +6,18 @@ metadata:
 spec:
   pipelineRef:
     name: pipeline-build-push
-  serviceAccountName: tekton-bot
   params:
     - name: GIT_URL
       value: https://github.com/owllabsgit/test1-owl.git
-    - name: GIT_REVISION
-      value: main
-    - name: IMAGE_REPO 
+    - name: IMAGE
       value: docker.io/owllabsdocker/owllabs
+    - name: CONTEXT
+      value: .
   workspaces:
-    - name: source
-      volumeClaimTemplate:
-        spec:
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 2Gi
+    - name: shared-workspace
+      persistentVolumeClaim:
+        claimName: tekton-workspace-pvc
     - name: dockerconfig
-      configMap:
-        name: docker-config
+      secret:
+        secretName: docker-config
 
