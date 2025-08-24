@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: build-and-push-image
+  name: build-and-push
   namespace: test
 spec:
   params:
