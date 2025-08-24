@@ -1,23 +1,27 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  generateName: build-and-push-run-   # Tekton will append a random suffix
+  generateName: build-and-push-run-
   namespace: test
 spec:
   pipelineRef:
-    name: build-and-push
+    name: pipeline-build-push    # 👈 match Pipeline name
   params:
+    - name: GIT_URL
+      value: https://github.com/your/repo.git   # 👈 replace with real repo
+    - name: GIT_REVISION
+      value: main
     - name: IMAGE_REPO
       value: docker.io/owllabsdocker/owllabs
     - name: CONTEXT
-      value: .   # assumes Dockerfile is at repo root
+      value: .
   workspaces:
-    - name: source
+    - name: shared-workspace
       persistentVolumeClaim:
-        claimName: source-pvc   # must exist, holds your source code
+        claimName: source-pvc     # must exist
     - name: dockerconfig
       secret:
-        secretName: regcred     # must exist, contains Docker Hub creds
+        secretName: regcred       # must exist
   podTemplate:
     securityContext:
       runAsUser: 0
