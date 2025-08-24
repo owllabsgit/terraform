@@ -10,7 +10,7 @@ spec:
     - name: GIT_REVISION
       type: string
       default: main
-    - name: IMAGE_REPO          # 👈 match the Task param
+    - name: IMAGE_REPO        # 👈 must match Task
       type: string
     - name: CONTEXT
       type: string
@@ -33,11 +33,11 @@ spec:
 
     - name: build-and-push
       taskRef:
-        name: build-and-push-image    # 👈 correct Task name
+        name: build-and-push-image   # 👈 match Task name
       runAfter:
         - clone
       params:
-        - name: IMAGE_REPO            # 👈 match Task param
+        - name: IMAGE_REPO
           value: $(params.IMAGE_REPO)
         - name: CONTEXT
           value: $(params.CONTEXT)

@@ -8,7 +8,7 @@ spec:
     name: pipeline-build-push    # 👈 match Pipeline name
   params:
     - name: GIT_URL
-      value: https://github.com/your/repo.git   # 👈 replace with real repo
+      value: https://github.com/owllabsgit/test1-owl.git  # 👈 replace with real repo
     - name: GIT_REVISION
       value: main
     - name: IMAGE_REPO
