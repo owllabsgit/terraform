@@ -1,24 +1,26 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  generateName: build-and-push-run-
+  generateName: build-push-
   namespace: test
 spec:
-  pipelineRef:
-    name: pipeline-build-push
+  taskRef:
+    name: build-and-push
   params:
     - name: IMAGE_REPO
-      value: docker.io/owllabsdocker/owllabs   # ✅ must match your Docker Hub repo
+      value: docker.io/owllabsdocker/owllabs
     - name: CONTEXT
       value: .
   workspaces:
     - name: source
       volumeClaimTemplate:
         spec:
-          accessModes: ["ReadWriteOnce"]
+          accessModes:
+            - ReadWriteOnce
           resources:
             requests:
               storage: 2Gi
     - name: dockerconfig
       configMap:
         name: docker-config
+

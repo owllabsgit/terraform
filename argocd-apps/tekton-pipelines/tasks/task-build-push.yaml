@@ -1,43 +1,40 @@
-# task-build-and-push.yaml
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: build-and-push
+  name: build-and-push-image
   namespace: test
 spec:
   params:
     - name: IMAGE_REPO
       type: string
-      description: "docker.io/owllabsdocker/owllabs"
     - name: CONTEXT
       type: string
       default: .
-      description: "Build context"
-
   workspaces:
     - name: source
-      description: "Source code"
     - name: dockerconfig
-      description: "Docker config.json"
-
+  results:
+    - name: image-tag
+    - name: full-image
   steps:
+    - name: generate-tag
+      image: alpine:latest
+      script: |
+        TAG="build-$(date +%s)"
+        IMAGE="$(params.IMAGE_REPO):${TAG}"
+        echo -n "${TAG}" > $(results.image-tag.path)
+        echo -n "${IMAGE}" > $(results.full-image.path)
     - name: build-and-push
       image: gcr.io/kaniko-project/executor:v1.23.2
       args:
         - --dockerfile=$(workspaces.source.path)/Dockerfile
         - --context=$(workspaces.source.path)/$(params.CONTEXT)
-        - --destination=$(params.IMAGE_REPO):latest
-        - --push-retry=3
-        - --verbosity=info
-        - --cache=true
+        - --destination=$(results.full-image.path)
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
-
-  volumes:
-    - name: docker-config
-      configMap:
-        name: docker-config
-        items:
-          - key: config.json
-            path: config.json
+    - name: update-configmap
+      image: bitnami/kubectl:latest
+      script: |
+        IMAGE=$(cat $(results.full-image.path))
+        kubectl create configmap symfony-image --from-literal=image=$IMAGE -n test --dry-run=client -o yaml | kubectl apply -f -
