@@ -4,27 +4,28 @@ metadata:
   name: pipeline-build-push
   namespace: test
 spec:
-  description: |
-    Clone a Git repository and build & push a Docker image using custom tasks.
   params:
     - name: GIT_URL
       type: string
     - name: GIT_REVISION
       type: string
       default: main
-    - name: IMAGE
+    - name: IMAGE_REPO
       type: string
+    - name: CONTEXT
+      type: string
+      default: .
   workspaces:
     - name: shared-workspace
     - name: dockerconfig
   tasks:
-    - name: clone
+    - name: clone-repo
       taskRef:
-        name: clone
+        name: git-clone
       params:
-        - name: url
+        - name: GIT_URL
           value: $(params.GIT_URL)
-        - name: revision
+        - name: GIT_REVISION
           value: $(params.GIT_REVISION)
       workspaces:
         - name: output
@@ -32,12 +33,14 @@ spec:
 
     - name: build-and-push
       runAfter:
-        - clone
+        - clone-repo
       taskRef:
         name: build-and-push
       params:
-        - name: IMAGE
-          value: $(params.IMAGE)
+        - name: IMAGE_REPO
+          value: $(params.IMAGE_REPO)
+        - name: CONTEXT
+          value: $(params.CONTEXT)
       workspaces:
         - name: source
           workspace: shared-workspace

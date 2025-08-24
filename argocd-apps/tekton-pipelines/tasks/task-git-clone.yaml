@@ -1,17 +1,15 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: clone
+  name: git-clone
+  namespace: test
 spec:
   params:
-    - name: url
+    - name: GIT_URL
       type: string
-    - name: revision
+    - name: GIT_REVISION
       type: string
-      default: "main"
-    - name: subdirectory
-      type: string
-      default: ""
+      default: main
   workspaces:
     - name: output
   steps:
@@ -20,10 +18,5 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        DEST_DIR="$(workspaces.output.path)/$(params.subdirectory)"
-        echo "Cloning $(params.url) into $DEST_DIR"
-        git clone $(params.url) "$DEST_DIR"
-        cd "$DEST_DIR"
-        echo "Checking out revision: $(params.revision)"
-        git checkout $(params.revision)
+        git clone --branch $(params.GIT_REVISION) $(params.GIT_URL) $(workspaces.output.path)
 
