@@ -12,16 +12,14 @@ spec:
       default: main
     - name: IMAGE_REPO
       type: string
-    - name: CONTEXT
-      type: string
-      default: .
   workspaces:
     - name: shared-workspace
     - name: dockerconfig
   tasks:
-    - name: clone-repo
+    - name: clone
       taskRef:
         name: git-clone
+        apiVersion: tekton.dev/v1
       params:
         - name: GIT_URL
           value: $(params.GIT_URL)
@@ -33,14 +31,15 @@ spec:
 
     - name: build-and-push
       runAfter:
-        - clone-repo
+        - clone
       taskRef:
         name: build-and-push
+        apiVersion: tekton.dev/v1
       params:
         - name: IMAGE_REPO
           value: $(params.IMAGE_REPO)
         - name: CONTEXT
-          value: $(params.CONTEXT)
+          value: .
       workspaces:
         - name: source
           workspace: shared-workspace

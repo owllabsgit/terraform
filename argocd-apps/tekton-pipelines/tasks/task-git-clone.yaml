@@ -14,9 +14,9 @@ spec:
     - name: output
   steps:
     - name: clone
-      image: alpine/git
+      image: alpine/git:latest
       script: |
         #!/bin/sh
         set -e
-        git clone --branch $(params.GIT_REVISION) $(params.GIT_URL) $(workspaces.output.path)
+        git clone -b $(params.GIT_REVISION) $(params.GIT_URL) $(workspaces.output.path)
 

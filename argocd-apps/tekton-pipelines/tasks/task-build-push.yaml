@@ -32,11 +32,11 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        IMAGE=$(cat $(results.full-image.path))
+        IMAGE="$(cat $(results.full-image.path))"
         /kaniko/executor \
           --dockerfile=$(workspaces.source.path)/Dockerfile \
           --context=$(workspaces.source.path)/$(params.CONTEXT) \
-          --destination="$IMAGE"
+          --destination="${IMAGE}"
       volumeMounts:
         - name: dockerconfig
           mountPath: /kaniko/.docker
