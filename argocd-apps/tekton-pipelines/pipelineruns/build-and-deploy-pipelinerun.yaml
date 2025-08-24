@@ -1,23 +1,24 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: PipelineRun
-metadata:
+meta
   generateName: build-and-push-run-
   namespace: test
 spec:
   pipelineRef:
     name: pipeline-build-push
   params:
-    - name: GIT_URL
-      value: https://github.com/owllabsgit/test1-owl.git
-    - name: IMAGE
-      value: docker.io/owllabsdocker/owllabs
+    - name: IMAGE_REPO
+      value: docker.io/owllabsdocker/owllabs   # ✅ must match your repo
     - name: CONTEXT
       value: .
   workspaces:
-    - name: shared-workspace
-      persistentVolumeClaim:
-        claimName: tekton-workspace-pvc
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
     - name: dockerconfig
-      secret:
-        secretName: docker-config
-
+      configMap:
+        name: docker-config

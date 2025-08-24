@@ -1,54 +1,32 @@
-apiVersion: tekton.dev/v1beta1
+# pipeline.yaml
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: pipeline-build-push
   namespace: test
 spec:
-  description: "Build and push image from GitHub repo https://github.com/owllabsgit/test1-owl.git"
   params:
-    - name: GIT_URL
+    - name: IMAGE_REPO
       type: string
-      description: "Git repository URL"
-    - name: IMAGE
-      type: string
-      description: "Docker image to push, e.g., owllabsdocker/owllabs:latest"
     - name: CONTEXT
       type: string
-      default: "."
-      description: "Docker build context"
-  workspaces:
-    - name: shared-workspace
-    - name: dockerconfig
-  tasks:
-    - name: clone-repo
-      taskRef:
-        apiVersion: tekton.dev/v1
-        kind: Task
-        name: git-clone
-      params:
-        - name: url
-          value: $(params.GIT_URL)
-        - name: revision
-          value: main
-      workspaces:
-        - name: output
-          workspace: shared-workspace
+      default: .
 
+  workspaces:
+    - name: source
+    - name: dockerconfig
+
+  tasks:
     - name: build-and-push
-      runAfter:
-        - clone-repo
       taskRef:
-        apiVersion: tekton.dev/v1
-        kind: Task
         name: build-and-push
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-        - name: dockerconfig
-          workspace: dockerconfig
       params:
         - name: IMAGE_REPO
-          value: $(params.IMAGE)
+          value: $(params.IMAGE_REPO)
         - name: CONTEXT
           value: $(params.CONTEXT)
-
+      workspaces:
+        - name: source
+          workspace: source
+        - name: dockerconfig
+          workspace: dockerconfig
