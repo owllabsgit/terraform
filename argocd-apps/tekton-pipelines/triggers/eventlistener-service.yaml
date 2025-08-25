@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: el-github-listener
+  namespace: test
+spec:
+  type: NodePort
+  selector:
+    eventlistener: github-listener
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 32555
+

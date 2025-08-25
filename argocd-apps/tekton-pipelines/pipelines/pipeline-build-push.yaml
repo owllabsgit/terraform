@@ -12,37 +12,42 @@ spec:
       default: main
     - name: IMAGE_REPO
       type: string
+    - name: CONTEXT
+      type: string
+      default: .
   workspaces:
     - name: shared-workspace
-    - name: dockerconfig
+    - name: dockerconfig   # ✅ Now declared
   tasks:
-    - name: clone
+    - name: fetch-repo
       taskRef:
+        kind: Task
         name: git-clone
-        apiVersion: tekton.dev/v1
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.GIT_URL)
+        - name: revision
+          value: $(params.GIT_REVISION)
+    - name: build-and-push
+      runAfter:
+        - fetch-repo
+      taskRef:
+        kind: Task
+        name: build-and-push
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig   # ✅ Passed to task
+          workspace: dockerconfig
       params:
         - name: GIT_URL
           value: $(params.GIT_URL)
         - name: GIT_REVISION
           value: $(params.GIT_REVISION)
-      workspaces:
-        - name: output
-          workspace: shared-workspace
-
-    - name: build-and-push
-      runAfter:
-        - clone
-      taskRef:
-        name: build-and-push
-        apiVersion: tekton.dev/v1
-      params:
         - name: IMAGE_REPO
           value: $(params.IMAGE_REPO)
         - name: CONTEXT
-          value: .
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-        - name: dockerconfig
-          workspace: dockerconfig
-
+          value: $(params.CONTEXT)

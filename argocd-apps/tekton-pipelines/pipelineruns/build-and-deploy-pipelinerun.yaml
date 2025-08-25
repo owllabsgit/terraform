@@ -4,22 +4,21 @@ metadata:
   generateName: build-and-push-run-
   namespace: test
 spec:
+  serviceAccountName: tekton-bot  # ✅ Add this (see SA below)
   pipelineRef:
     name: pipeline-build-push
   params:
     - name: GIT_URL
       value: https://github.com/owllabsgit/test1-owl.git
+    - name: GIT_REVISION
+      value: main
     - name: IMAGE_REPO
       value: docker.io/owllabsdocker/owllabs
+    - name: CONTEXT
+      value: .
   workspaces:
     - name: shared-workspace
-      volumeClaimTemplate:
-        spec:
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 2Gi
+      emptyDir: {}
     - name: dockerconfig
-      configMap:
-        name: docker-config
-
+      secret:
+        secretName: regcred  # ✅ Use a Secret, not ConfigMap

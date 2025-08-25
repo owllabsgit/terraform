@@ -4,11 +4,8 @@ metadata:
   name: github-listener
   namespace: test
 spec:
-  serviceAccountName: default
+  serviceAccountName: pipeline
   triggers:
-    - name: github-trigger
-      bindings:
-        - ref: github-binding
-      template:
-        ref: pipeline-trigger-template
+    - name: github-push-trigger
+      triggerRef: github-push-trigger
 

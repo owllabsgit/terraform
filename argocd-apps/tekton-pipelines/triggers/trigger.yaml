@@ -1,0 +1,11 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: Trigger
+metadata:
+  name: github-push-trigger
+  namespace: test
+spec:
+  bindings:
+    - ref: github-push-binding
+  template:
+    ref: pipeline-build-push-template
+

@@ -1,12 +1,14 @@
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: github-binding
+  name: github-push-binding
   namespace: test
 spec:
   params:
-    - name: gitrevision
-      value: $(body.head_commit.id)
-    - name: gitrepositoryurl
+    - name: GIT_URL
       value: $(body.repository.clone_url)
+    - name: GIT_REVISION
+      value: $(body.ref)
+    - name: IMAGE_REPO
+      value: docker.io/owllabsdocker/owllabs
 

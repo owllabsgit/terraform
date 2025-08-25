@@ -1,22 +1,29 @@
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: git-clone
   namespace: test
 spec:
-  params:
-    - name: GIT_URL
-      type: string
-    - name: GIT_REVISION
-      type: string
-      default: main
   workspaces:
     - name: output
+      description: The git repo will be cloned onto the volume backing this workspace.
+  params:
+    - name: url
+      type: string
+      description: The git repository URL to clone
+    - name: revision
+      type: string
+      default: "main"
+      description: Revision to checkout (branch, tag, commit SHA, etc.)
+    - name: depth
+      type: string
+      default: "1"
+      description: Perform a shallow clone, default is 1
   steps:
     - name: clone
-      image: alpine/git:latest
+      image: alpine/git
       script: |
         #!/bin/sh
-        set -e
-        git clone -b $(params.GIT_REVISION) $(params.GIT_URL) $(workspaces.output.path)
+        set -xe
+        git clone --depth=$(params.depth) -b $(params.revision) $(params.url) $(workspaces.output.path)
 
