@@ -1,3 +1,4 @@
+# pipeline.yaml
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
@@ -7,17 +8,21 @@ spec:
   params:
     - name: GIT_URL
       type: string
+      description: The Git repository URL to clone
     - name: GIT_REVISION
       type: string
       default: main
+      description: The Git revision (branch, tag, SHA)
     - name: IMAGE_REPO
       type: string
+      description: Full image repo (e.g. docker.io/owllabsdocker/owllabs)
     - name: CONTEXT
       type: string
       default: .
+      description: Context path inside the repo for Docker build
   workspaces:
     - name: shared-workspace
-    - name: dockerconfig   # ✅ Now declared
+    - name: dockerconfig
   tasks:
     - name: fetch-repo
       taskRef:
@@ -40,7 +45,7 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
-        - name: dockerconfig   # ✅ Passed to task
+        - name: dockerconfig
           workspace: dockerconfig
       params:
         - name: GIT_URL

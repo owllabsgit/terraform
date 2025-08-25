@@ -1,10 +1,11 @@
+# pipelinerun.yaml
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: build-and-push-run-
   namespace: test
 spec:
-  serviceAccountName: tekton-bot  # ✅ Add this (see SA below)
+  serviceAccountName: tekton-bot
   pipelineRef:
     name: pipeline-build-push
   params:
@@ -21,4 +22,4 @@ spec:
       emptyDir: {}
     - name: dockerconfig
       secret:
-        secretName: regcred  # ✅ Use a Secret, not ConfigMap
+        secretName: regcred
