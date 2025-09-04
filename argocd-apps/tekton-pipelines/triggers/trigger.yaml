@@ -1,11 +1,13 @@
-apiVersion: triggers.tekton.dev/v1beta1
-kind: Trigger
+apiVersion: triggers.tekton.dev/v1
+kind: EventListener
 metadata:
-  name: github-push-trigger
-  namespace: test
+  name: webhook-listener
+  namespace: dev
 spec:
-  bindings:
-    - ref: github-push-binding
-  template:
-    ref: pipeline-build-push-template
-
+  serviceAccountName: build-bot
+  triggers:
+  - name: ci-trigger
+    bindings:
+    - ref: ci-binding
+    template:
+      ref: ci-template

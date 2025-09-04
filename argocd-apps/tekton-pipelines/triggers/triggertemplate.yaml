@@ -1,32 +1,40 @@
-apiVersion: triggers.tekton.dev/v1beta1
+apiVersion: triggers.tekton.dev/v1
 kind: TriggerTemplate
 metadata:
-  name: pipeline-build-push-template
-  namespace: test
+  name: ci-template
+  namespace: dev
 spec:
   params:
-    - name: GIT_URL
-    - name: GIT_REVISION
-    - name: IMAGE_REPO
+    - name: git-repo-url
+      description: The Git repository URL
+    - name: git-revision
+      description: The Git revision (branch)
+    - name: git-commit
+      description: The Git commit SHA
+
   resourcetemplates:
-    - apiVersion: tekton.dev/v1beta1
+    - apiVersion: tekton.dev/v1
       kind: PipelineRun
-      metadata:
-        generateName: build-and-push-run-
+      meta
+        generateName: ci-run-
+        annotations:
+          tekton.dev/git-url: $(params.git-repo-url)
+          tekton.dev/git-revision: $(params.git-revision)
+          tekton.dev/git-commit: $(params.git-commit)
       spec:
         pipelineRef:
-          name: pipeline-build-push
+          name: ci-pipeline
+        serviceAccountName: build-bot
         params:
-          - name: GIT_URL
-            value: $(params.GIT_URL)
-          - name: GIT_REVISION
-            value: $(params.GIT_REVISION)
-          - name: IMAGE_REPO
-            value: $(params.IMAGE_REPO)
+          - name: repo-url
+            value: $(params.git-repo-url)
+          - name: revision
+            value: $(params.git-revision)
+          - name: image
+            value: docker.io/owllabsdocker/test1-owl:latest
+          - name: dockerfile
+            value: ./Dockerfile
         workspaces:
           - name: shared-workspace
-            emptyDir: {}
-          - name: dockerconfig
-            configMap:
-              name: docker-config
-
+            persistentVolumeClaim:
+              claimName: tekton-workspace
