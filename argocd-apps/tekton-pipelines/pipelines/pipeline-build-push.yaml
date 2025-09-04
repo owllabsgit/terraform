@@ -1,58 +1,54 @@
 # pipeline.yaml
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: pipeline-build-push
-  namespace: test
+  name: ci-pipeline
+  namespace: dev
 spec:
   params:
-    - name: GIT_URL
+    - name: repo-url
       type: string
-      description: The Git repository URL to clone
-    - name: GIT_REVISION
+      description: Repository to clone
+    - name: revision
       type: string
+      description: Branch or tag
       default: main
-      description: The Git revision (branch, tag, SHA)
-    - name: IMAGE_REPO
+    - name: image
       type: string
-      description: Full image repo (e.g. docker.io/owllabsdocker/owllabs)
-    - name: CONTEXT
+      description: Full image name, e.g., docker.io/owllabsdocker/test1-owl:latest
+    - name: dockerfile
       type: string
-      default: .
-      description: Context path inside the repo for Docker build
+      description: Path to Dockerfile
+      default: ./Dockerfile
+
   workspaces:
     - name: shared-workspace
-    - name: dockerconfig
+
   tasks:
-    - name: fetch-repo
+    - name: fetch-source
       taskRef:
         kind: Task
         name: git-clone
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
       workspaces:
         - name: output
           workspace: shared-workspace
-      params:
-        - name: url
-          value: $(params.GIT_URL)
-        - name: revision
-          value: $(params.GIT_REVISION)
+
     - name: build-and-push
-      runAfter:
-        - fetch-repo
       taskRef:
         kind: Task
-        name: build-and-push
+        name: build-and-push-task
+      runAfter:
+        - fetch-source
+      params:
+        - name: IMAGE
+          value: $(params.image)
+        - name: DOCKERFILE
+          value: $(params.dockerfile)
       workspaces:
         - name: source
           workspace: shared-workspace
-        - name: dockerconfig
-          workspace: dockerconfig
-      params:
-        - name: GIT_URL
-          value: $(params.GIT_URL)
-        - name: GIT_REVISION
-          value: $(params.GIT_REVISION)
-        - name: IMAGE_REPO
-          value: $(params.IMAGE_REPO)
-        - name: CONTEXT
-          value: $(params.CONTEXT)

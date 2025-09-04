@@ -1,29 +1,44 @@
-apiVersion: tekton.dev/v1beta1
+# task-git-clone.yaml
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: git-clone
-  namespace: test
+  namespace: dev
 spec:
-  workspaces:
-    - name: output
-      description: The git repo will be cloned onto the volume backing this workspace.
   params:
     - name: url
       type: string
-      description: The git repository URL to clone
+      description: Git repository URL
     - name: revision
       type: string
-      default: "main"
-      description: Revision to checkout (branch, tag, commit SHA, etc.)
-    - name: depth
-      type: string
-      default: "1"
-      description: Perform a shallow clone, default is 1
+      description: Git branch, tag, or commit
+      default: main
+
+  workspaces:
+    - name: output
+      description: The workspace to clone the repo into
+
   steps:
     - name: clone
       image: alpine/git
+      workingDir: $(workspaces.output.path)
+      env:
+        - name: HOME
+          value: /tekton/home
       script: |
         #!/bin/sh
-        set -xe
-        git clone --depth=$(params.depth) -b $(params.revision) $(params.url) $(workspaces.output.path)
+        echo "📊 === GIT CLONE STARTED ==="
+        echo "📦 Repo: $(params.url)"
+        echo "🌀 Branch/Tag/Commit: $(params.revision)"
+        echo "📁 Target directory: $(workspaces.output.path)"
+        
+        echo "🔽 Cloning repository..."
+        git clone --depth=1 --branch $(params.revision) $(params.url) . && echo "✅ Clone successful"
 
+        echo "🔍 Getting latest commit info..."
+        git log -1
+
+        echo "📋 File list after clone:"
+        ls -la
+
+        echo "📊 === GIT CLONE COMPLETED ==="

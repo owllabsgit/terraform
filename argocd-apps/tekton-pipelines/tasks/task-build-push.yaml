@@ -1,83 +1,53 @@
-# task-build-and-push.yaml
+# argocd-apps/tekton-pipelines/tasks/task-build-push.yaml
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: build-and-push
-  namespace: test
+  name: build-and-push-task
+  namespace: dev
 spec:
   params:
-    - name: GIT_URL
-      type: string
-    - name: GIT_REVISION
-      type: string
-      default: main
-    - name: IMAGE_REPO
-      type: string
-    - name: CONTEXT
-      type: string
-      default: .
+  - name: IMAGE
+    type: string
+    description: Full image name, e.g., docker.io/owllabsdocker/test1-owl:latest
+  - name: DOCKERFILE
+    type: string
+    description: Path to Dockerfile
+    default: ./Dockerfile
+
   workspaces:
-    - name: source
-      description: Cloned repo workspace
-    - name: dockerconfig
-      description: Docker config (config.json)
-      mountPath: /kaniko/.docker
-  results:
-    - name: image-tag
-    - name: full-image
+  - name: source
+    description: Source code with Dockerfile
+
   steps:
-    - name: clone
-      image: alpine/git:latest
-      script: |
-        #!/bin/sh
-        set -e
-        git clone -b $(params.GIT_REVISION) $(params.GIT_URL) $(workspaces.source.path)
+  - name: build-and-push
+    image: gcr.io/kaniko-project/executor:v1.23.2
+    workingDir: $(workspaces.source.path)
+    env:
+    - name: DOCKER_CONFIG
+      value: /kaniko/.docker
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker
+    command:
+    - /kaniko/executor
+    args:
+    - --dockerfile=$(workspaces.source.path)/$(params.DOCKERFILE)
+    - --context=$(workspaces.source.path)
+    - --destination=$(params.IMAGE)
+    - --verbosity=info
 
-    - name: generate-tag
-      image: alpine:latest
-      script: |
-        #!/bin/sh
-        set -e
-        cd $(workspaces.source.path)
-        if command -v git >/dev/null 2>&1 && [ -d .git ]; then
-          TAG="$(git rev-parse --short=12 HEAD)-$(date +%Y%m%d%H%M%S)"
-        else
-          TAG="build-$(date +%s)"
-        fi
-        IMAGE="$(params.IMAGE_REPO):${TAG}"
-        echo -n "${TAG}" > $(results.image-tag.path)
-        echo -n "${IMAGE}" > $(results.full-image.path)
+  - name: post-build-logs
+    image: alpine:latest
+    script: |
+      #!/bin/sh
+      echo "✅ === IMAGE BUILT AND PUSHED SUCCESSFULLY ==="
+      echo "📄 Files in source after build:"
+      ls -la $(workspaces.source.path)
 
-    - name: build-and-push
-      image: gcr.io/kaniko-project/executor:v1.23.2
-      env:
-        - name: DOCKER_CONFIG
-          value: /kaniko/.docker
-      script: |
-        #!/busybox/sh
-        set -e
-        IMAGE="$(cat $(results.full-image.path))"
-        /kaniko/executor \
-          --dockerfile=$(workspaces.source.path)/Dockerfile \
-          --context=$(workspaces.source.path)/$(params.CONTEXT) \
-          --destination="${IMAGE}"
-
-    - name: update-configmap
-      image: bitnami/kubectl:latest
-      script: |
-        #!/bin/sh
-        set -e
-        IMAGE="$(cat $(results.full-image.path))"
-        kubectl create configmap symfony-image \
-          --from-literal=image="${IMAGE}" \
-          -n test --dry-run=client -o yaml | kubectl apply -f -
-
-    - name: rollout-deployment
-      image: bitnami/kubectl:latest
-      script: |
-        #!/bin/sh
-        set -e
-        IMAGE="$(cat $(results.full-image.path))"
-        kubectl set image deployment/symfony-app symfony="${IMAGE}" -n test
-        kubectl rollout status deployment/symfony-app -n test --timeout=5m
-
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: reg-creds
+      items:
+      - key: .dockerconfigjson
+        path: config.json
