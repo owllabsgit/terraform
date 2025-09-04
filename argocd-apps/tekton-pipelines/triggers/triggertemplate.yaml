@@ -15,7 +15,7 @@ spec:
   resourcetemplates:
     - apiVersion: tekton.dev/v1
       kind: PipelineRun
-      meta
+      metadata:
         generateName: ci-run-
         annotations:
           tekton.dev/git-url: $(params.git-repo-url)
