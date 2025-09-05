@@ -1,13 +1,11 @@
-apiVersion: triggers.tekton.dev/v1
+apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: ci-binding
+  name: github-binding
   namespace: dev
 spec:
   params:
-    - name: git-repo-url
-      value: $(body.repository.clone_url)
-    - name: git-revision
-      value: $(body.ref)
-    - name: git-commit
-      value: $(body.head_commit.id)
+  - name: repo-url
+    value: $(body.repository.clone_url)
+  - name: revision
+    value: $(body.head_commit.id)
