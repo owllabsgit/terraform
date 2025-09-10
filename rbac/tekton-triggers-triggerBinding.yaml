@@ -3,11 +3,10 @@ kind: ClusterRoleBinding
 metadata:
   name: tekton-triggers-admin-binding
 subjects:
-  - kind: ServiceAccount
-    name: default
-    namespace: test
+- kind: ServiceAccount
+  name: default
+  namespace: test
 roleRef:
   kind: ClusterRole
   name: tekton-triggers-admin
   apiGroup: rbac.authorization.k8s.io
-

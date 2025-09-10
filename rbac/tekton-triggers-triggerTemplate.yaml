@@ -1,0 +1,37 @@
+# triggertemplate.yaml
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: pipeline-template
+  namespace: dev
+spec:
+  params:
+  - name: repo-url
+    description: The Git repository URL
+  - name: revision
+    description: The Git revision (e.g., refs/heads/main)
+
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: ci-run-
+      annotations:
+        tekton.dev/git-url: $(params.repo-url)
+        tekton.dev/git-revision: $(params.revision)
+    spec:
+      pipelineRef:
+        name: ci-pipeline
+      params:
+      - name: repo-url
+        value: $(params.repo-url)
+      - name: revision
+        value: $(params.revision)
+      - name: image
+        value: docker.io/owllabsdocker/test1-owl:latest
+      - name: dockerfile
+        value: ./Dockerfile
+      workspaces:
+      - name: shared-workspace
+        persistentVolumeClaim:
+          claimName: tekton-workspace
