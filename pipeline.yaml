@@ -1,5 +1,4 @@
-# pipeline.yaml
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: ci-pipeline
@@ -15,33 +14,30 @@ spec:
       default: main
     - name: image
       type: string
-      description: Full image name, e.g., docker.io/owllabsdocker/test1-owl:latest
+      description: Full image name
     - name: dockerfile
       type: string
       description: Path to Dockerfile
       default: ./Dockerfile
-
   workspaces:
     - name: shared-workspace
-
   tasks:
     - name: fetch-source
       taskRef:
         kind: Task
-        name: git-clone
+        name: fetch-source-task
       params:
-        - name: url
+        - name: repo-url
           value: $(params.repo-url)
         - name: revision
           value: $(params.revision)
       workspaces:
         - name: output
           workspace: shared-workspace
-
     - name: build-and-push
       taskRef:
         kind: Task
-        name: build-and-push-task
+        name: kaniko-build-push-task
       runAfter:
         - fetch-source
       params:

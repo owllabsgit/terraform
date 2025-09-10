@@ -7,13 +7,10 @@ spec:
   params:
     - name: repo-url
       description: Git repository URL
-      default: https://github.com/owllabsgit/test1-owl.git
     - name: revision
       description: Git revision (branch/tag)
-      default: refs/heads/main
-
   resourcetemplates:
-    - apiVersion: tekton.dev/v1
+    - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
         generateName: ci-run-

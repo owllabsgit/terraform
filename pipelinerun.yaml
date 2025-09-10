@@ -1,19 +1,12 @@
-# pipelinerun.yaml
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: ci-run-
   namespace: dev
 spec:
+  serviceAccountName: build-bot
   pipelineRef:
     name: ci-pipeline
-
-  taskRunSpecs:
-    - pipelineTaskName: fetch-source
-      serviceAccountName: build-bot
-    - pipelineTaskName: build-and-push
-      serviceAccountName: build-bot
-
   params:
     - name: repo-url
       value: https://github.com/owllabsgit/test1-owl.git
@@ -23,9 +16,11 @@ spec:
       value: docker.io/owllabsdocker/test1-owl:latest
     - name: dockerfile
       value: ./Dockerfile
-
   workspaces:
     - name: shared-workspace
       persistentVolumeClaim:
         claimName: tekton-workspace
+    - name: dockerconfig
+      secret:
+        secretName: reg-creds
 

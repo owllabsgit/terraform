@@ -1,0 +1,49 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: kaniko-build-push-task
+  namespace: dev
+spec:
+  params:
+    - name: IMAGE
+      type: string
+      description: Full image name
+    - name: DOCKERFILE
+      type: string
+      description: Path to Dockerfile
+      default: ./Dockerfile
+  workspaces:
+    - name: source
+      description: Source code with Dockerfile
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:v1.23.2
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /kaniko/.docker
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(workspaces.source.path)/$(params.DOCKERFILE)
+        - --context=$(workspaces.source.path)
+        - --destination=$(params.IMAGE)
+        - --verbosity=info
+    - name: post-build-logs
+      image: alpine:latest
+      script: |
+        #!/bin/sh
+        echo "✅ === IMAGE BUILT AND PUSHED SUCCESSFULLY ==="
+        echo "📄 Files in source after build:"
+        ls -la $(workspaces.source.path)
+  volumes:
+    - name: docker-config
+      secret:
+        secretName: reg-creds
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+
