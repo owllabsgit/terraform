@@ -12,14 +12,15 @@ spec:
       value: https://github.com/owllabsgit/test1-owl.git
     - name: revision
       value: main
-    - name: IMAGE
-      value: docker.io/owllabsdocker/test1-owl
-    - name: DOCKERFILE
+    - name: image
+      value: docker.io/owllabsdocker/test1-owl:latest
+    - name: dockerfile
       value: ./Dockerfile
   workspaces:
     - name: shared-workspace
       persistentVolumeClaim:
         claimName: tekton-workspace
-    - name: docker-config
+    - name: dockerconfig
       secret:
         secretName: reg-creds
+

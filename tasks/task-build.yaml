@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-task
+  namespace: dev
+spec:
+  params:
+    - name: image
+      type: string
+    - name: tag
+      type: string
+  workspaces:
+    - name: source
+    - name: dockerconfig
+  steps:
+    - name: build
+      image: gcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker/
+      args:
+        - "--dockerfile=$(workspaces.source.path)/Dockerfile"
+        - "--context=$(workspaces.source.path)"
+        - "--destination=$(params.image):$(params.tag)"
+

@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: extract-git-sha
+  namespace: dev
+spec:
+  workspaces:
+    - name: source
+      description: Workspace with the cloned repository
+  results:
+    - name: commitSha
+      description: The Git commit SHA from the cloned repo
+  steps:
+    - name: extract-sha
+      image: alpine/git:latest
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        set -e
+
+        echo "🔍 Extracting Git commit SHA..."
+        COMMIT_SHA=$(git rev-parse HEAD)
+        echo "✅ Commit SHA: $COMMIT_SHA"
+
+        # Save it to the Tekton result (canonical way to share data between tasks)
+        echo -n "$COMMIT_SHA" > $(results.commitSha.path)
+
+        # Optional: also write to a file in workspace for debugging/logging
+        echo "$COMMIT_SHA" > $(workspaces.source.path)/commit-sha.txt
+        echo "📝 SHA also written to commit-sha.txt for reference"

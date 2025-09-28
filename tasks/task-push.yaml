@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: push-task
+  namespace: dev
+spec:
+  params:
+    - name: image
+      type: string
+    - name: tag
+      type: string
+  workspaces:
+    - name: dockerconfig
+  steps:
+    - name: push
+      image: docker:20.10.24
+      workingDir: /
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker/
+      script: |
+        #!/bin/sh
+        echo "Pushing image $(params.image):$(params.tag)"
+        docker push $(params.image):$(params.tag)
+

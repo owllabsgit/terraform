@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-push-task
+  namespace: dev
+spec:
+  workspaces:
+    - name: source
+      description: Source code workspace
+    - name: dockerconfig
+      description: Docker credentials
+  params:
+    - name: image
+      type: string
+      description: Docker image (e.g., docker.io/username/app)
+    - name: dockerfile
+      type: string
+      default: Dockerfile
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker/
+      script: |
+        #!/busybox/sh
+        set -e
+        SHA=$(git rev-parse --short HEAD || echo "no-git-sha")
+        TS=$(date +%Y%m%d%H%M%S)
+        TAG="$SHA-$TS"
+        echo "Generated tag: $TAG"
+        /kaniko/executor \
+          --dockerfile=$(workspaces.source.path)/$(params.dockerfile) \
+          --context=$(workspaces.source.path) \
+          --destination=$(params.image):$TAG \
+          --destination=$(params.image):latest
+

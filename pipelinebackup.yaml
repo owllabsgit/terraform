@@ -1,4 +1,4 @@
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: ci-pipeline
@@ -7,24 +7,24 @@ spec:
   params:
     - name: repo-url
       type: string
-      description: Git repository URL
+      description: Repository to clone
     - name: revision
       type: string
       description: Branch or tag
       default: main
-    - name: DOCKERFILE
+    - name: image
+      type: string
+      description: Full image name
+    - name: dockerfile
       type: string
       description: Path to Dockerfile
       default: ./Dockerfile
-    - name: IMAGE
-      type: string
-      description: Docker image name
   workspaces:
     - name: shared-workspace
-    - name: docker-config
   tasks:
-    - name: fetch-source-task
+    - name: fetch-source
       taskRef:
+        kind: Task
         name: fetch-source-task
       params:
         - name: repo-url
@@ -34,30 +34,18 @@ spec:
       workspaces:
         - name: output
           workspace: shared-workspace
-
-    - name: extract-git-sha
+    - name: build-and-push
       taskRef:
-        name: extract-git-sha
-      runAfter:
-        - fetch-source-task
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-
-    - name: kaniko-build-push-task
-      taskRef:
+        kind: Task
         name: kaniko-build-push-task
       runAfter:
-        - extract-git-sha
+        - fetch-source
       params:
         - name: IMAGE
-          value: $(params.IMAGE)
+          value: $(params.image)
         - name: DOCKERFILE
-          value: $(params.DOCKERFILE)
-        - name: COMMIT_SHA
-          value: $(tasks.extract-git-sha.results.commitSha)
+          value: $(params.dockerfile)
       workspaces:
         - name: source
           workspace: shared-workspace
-        - name: docker-config
-          workspace: docker-config
+
