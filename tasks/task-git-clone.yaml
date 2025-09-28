@@ -16,24 +16,32 @@ spec:
     - name: output
       description: Directory to clone repo into
   steps:
-    - name: clone
-      image: alpine/git
-      workingDir: $(workspaces.output.path)
-      env:
-        - name: HOME
-          value: /tekton/home
-      script: |
-        #!/bin/sh
-        echo "📊 === GIT CLONE STARTED ==="
-        echo "📦 Repo: $(params.repo-url)"
-        echo "🌀 Branch/Tag/Commit: $(params.revision)"
-        echo "📁 Target directory: $(workspaces.output.path)"
-        echo "🔽 Cloning repository..."
-        git clone --depth=1 --branch $(params.revision) $(params.repo-url) . && echo "✅ Clone successful"
-        echo "🔍 Getting latest commit info..."
-        git log -1
-        echo "📋 File list after clone:"
-        ls -la
-        echo "📊 === GIT CLONE COMPLETED ==="
+  - name: clone
+    image: alpine/git
+    workingDir: $(workspaces.output.path)
+    env:
+      - name: HOME
+        value: /tekton/home
+    script: |
+      #!/bin/sh
+      echo "📊 === GIT CLONE STARTED ==="
+      echo "📦 Repo: $(params.repo-url)"
+      echo "🌀 Branch/Tag/Commit: $(params.revision)"
+      echo "📁 Target directory: $(workspaces.output.path)"
 
+      if [ -d .git ]; then
+        echo "🔄 Repo already exists, pulling latest..."
+        git fetch origin $(params.revision)
+        git checkout $(params.revision)
+        git reset --hard origin/$(params.revision)
+      else
+        echo "🔽 Fresh clone..."
+        git clone --branch $(params.revision) $(params.repo-url) .
+      fi
+
+      echo "🔍 Latest commit:"
+      git log -1 --oneline
+      echo "📋 Files:"
+      ls -la
+      echo "📊 === GIT CLONE COMPLETED ==="
 
