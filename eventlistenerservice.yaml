@@ -1,13 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: el-webhook-listener-nodeport
+  name: el-github-listener-nodeport
   namespace: dev
 spec:
   type: NodePort
   selector:
-    eventlistener: github-eventlistener
+    app.kubernetes.io/name: el-github-listener
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30095
+      nodePort: 30080
+

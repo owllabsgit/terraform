@@ -1,3 +1,5 @@
+# 0-provider.tf
+
 terraform {
   required_providers {
     helm = {
@@ -29,6 +31,7 @@ provider "kubernetes" {
   config_path = "~/.kube/config"
 }
 
+# If you use kubectl_manifest, also add:
 provider "kubectl" {
   config_path = "~/.kube/config"
 }

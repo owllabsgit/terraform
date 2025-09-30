@@ -1,3 +1,4 @@
+# Enhanced TriggerBinding
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
@@ -5,8 +6,9 @@ metadata:
   namespace: dev
 spec:
   params:
-    - name: repo-url
-      value: $(body.repository.clone_url)
-    - name: revision
-      value: $(body.ref)
-
+  - name: git-repo-url
+    value: $(body.repository.clone_url)
+  - name: git-commit-id
+    value: $(body.head_commit.id)
+  - name: git-branch
+    value: $(body.ref)

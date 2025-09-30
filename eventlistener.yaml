@@ -1,14 +1,14 @@
+# eventlistener.yaml
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
 metadata:
-  name: webhook-listener
+  name: github-listener
   namespace: dev
 spec:
-  serviceAccountName: build-bot
+  serviceAccountName: tekton-triggers-github-sa
   triggers:
-    - name: ci-trigger
+    - name: github-trigger
       bindings:
-        - ref: github-binding
+        - ref: github-binding                 # ← Your binding name
       template:
-        ref: pipeline-template
-
+        ref: github-trigger-template          # ← Your template name

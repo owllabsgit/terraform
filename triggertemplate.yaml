@@ -1,37 +1,41 @@
+# github-trigger-template.yaml
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: pipeline-template
+  name: github-trigger-template
   namespace: dev
 spec:
   params:
-    - name: repo-url
-      description: Git repository URL
-    - name: revision
-      description: Git revision (branch/tag)
+    - name: git-repo-url
+    - name: git-commit-id
+    # 👇 ADD IMAGE HERE (you can hardcode or derive it)
+    - name: IMAGE
+      default: "docker.io/owllabsdocker/test1-owl"  # ← your image
+    - name: DOCKERFILE
+      default: "./Dockerfile"
   resourcetemplates:
-    - apiVersion: tekton.dev/v1beta1
+    - apiVersion: tekton.dev/v1
       kind: PipelineRun
       metadata:
         generateName: ci-run-
+        namespace: dev
       spec:
-        serviceAccountName: build-bot
+        serviceAccountName: build-bot  # ← important!
         pipelineRef:
           name: ci-pipeline
         params:
           - name: repo-url
-            value: $(params.repo-url)
+            value: $(tt.params.git-repo-url)
           - name: revision
-            value: $(params.revision)
-          - name: image
-            value: docker.io/owllabsdocker/test1-owl:latest
-          - name: dockerfile
-            value: ./Dockerfile
+            value: $(tt.params.git-commit-id)
+          - name: IMAGE
+            value: $(tt.params.IMAGE)
+          - name: DOCKERFILE
+            value: $(tt.params.DOCKERFILE)
         workspaces:
           - name: shared-workspace
             persistentVolumeClaim:
               claimName: tekton-workspace
-          - name: dockerconfig
+          - name: docker-config
             secret:
               secretName: reg-creds
-
