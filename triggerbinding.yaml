@@ -1,14 +1,17 @@
-# Enhanced TriggerBinding
 apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerBinding
+kind: EventListener
 metadata:
-  name: github-binding
+  name: github-listener
   namespace: dev
 spec:
-  params:
-  - name: git-repo-url
-    value: $(body.repository.clone_url)
-  - name: git-commit-id
-    value: $(body.head_commit.id)
-  - name: git-branch
-    value: $(body.ref)
+  serviceAccountName: tekton-triggers-sa
+  triggers:
+    - name: github-trigger
+      bindings:
+        - ref: github-binding
+      template:
+        ref: ci-template
+      interceptors:
+        - cel:
+            filter: "body.ref == 'refs/heads/main' && body.head_commit.author.username != 'argocd-image-updater'"
+
